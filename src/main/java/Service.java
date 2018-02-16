@@ -32,7 +32,7 @@ public class Service {
         List<String> coords = new ArrayList<>();
 
         for (int i=100; i<10000; i++) {
-            String coord = getData(i);
+            List<String> coord = getData(i);
             writeToFile(coord);
             Thread.sleep(2000);
         }
@@ -40,7 +40,7 @@ public class Service {
 
 
     }
-    public String getData(int index) throws IOException {
+    public List<String> getData(int index) throws IOException {
         String url = String.format("https://www.plotfind.co.bw/server_request/get_plot.php?plot=%s", index);
 
         final ResponseEntity<String> forEntity = getRestTemplate().exchange(url, GET, getHttpEntity(), String.class);
@@ -50,19 +50,27 @@ public class Service {
 
 
         RemoteJson obj = mapper.readValue(json, RemoteJson.class);
-        String cvs = obj.getFeatures().get(0).getProperties().getName() + ","
-                + obj.getFeatures().get(0).getProperties().getArea() + ", "
-                + obj.getFeatures().get(0).getProperties().getTown() + ","
-                + obj.getFeatures().get(0).getGeometry().getCoordinates().get(0) + ","
-                + obj.getFeatures().get(0).getGeometry().getCoordinates().get(1) + "\n";
+
+        List<String> results = new ArrayList<>();
+        for (Feature feature : obj.getFeatures()) {
+            results.add(feature.getProperties().getName() + "," +
+            feature.getProperties().getArea() + ", " +
+            feature.getProperties().getTown() + "," +
+            feature.getGeometry().getCoordinates().get(0) + "," +
+            feature.getGeometry().getCoordinates().get(1) + "\n");
+
+        }
 
 
-        System.out.println(cvs);
-        return cvs;
+        for (String result : results) {
+            System.out.println(result);
+        }
+
+        return results;
     }
 
 
-    private void writeToFile(String line) {
+    private void writeToFile(List<String> lines) {
 
         try {
             // if file doesnt exists, then create it
@@ -76,7 +84,10 @@ public class Service {
             fw = new FileWriter(file.getAbsoluteFile(), true);
             bw = new BufferedWriter(fw);
 
-            bw.write(line);
+            for (String s : lines) {
+                bw.write(s);
+            }
+
             closeFile();
 
 
