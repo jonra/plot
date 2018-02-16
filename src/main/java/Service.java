@@ -31,10 +31,10 @@ public class Service {
     public void run() throws IOException, InterruptedException {
         List<String> coords = new ArrayList<>();
 
-        for (int i=100; i<10000; i++) {
+        for (int i=100; i<1000; i++) {
             List<String> coord = getData(i);
             writeToFile(coord);
-            Thread.sleep(2000);
+
         }
 
 
