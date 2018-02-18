@@ -9,10 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,21 +22,77 @@ import static org.springframework.http.HttpMethod.GET;
 public class Service {
     BufferedWriter bw = null;
     FileWriter fw = null;
-    File file = new File("coords.csv");
+    File file = new File("result.csv");
+    File missing = new File("missing");
 
 
     public void run() throws IOException, InterruptedException {
         List<String> coords = new ArrayList<>();
 
-        for (int i=100; i<1000; i++) {
-            List<String> coord = getData(i);
-            writeToFile(coord);
+        invokeMissingNumbers();
+        //List<Integer> missingNumbers = getMissingNumbers();
 
-        }
+//        for (int i=100; i<1000; i++) {
+//            List<String> coord = getData(i);
+//            writeToFile(coord);
+//
+//        }
+
+        List missing = new ArrayList();
 
 
 
     }
+
+
+    public List<Integer> invokeMissingNumbers() throws IOException {
+        List<Integer> plots = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(missing))) {
+            String line;
+
+            int buffer = 1000;
+            int index = 0;
+            List<String> missing = new ArrayList<>();
+            while ((line = br.readLine()) != null) {
+                // process the line.
+                System.out.println(line);
+
+                List<String> data = getData(Integer.parseInt(line));
+                missing.addAll(data);
+                index++;
+
+                if (index==buffer) {
+                    index=0;
+                    writeToFile(missing);
+                    missing.clear();
+                }
+            }
+        }
+
+        return plots;
+    }
+
+
+    public List<Integer> getMissingNumbers() throws IOException {
+        List<Integer> plots = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // process the line.
+                System.out.println(line);
+                String[] split = line.split(",");
+                String n = split[0];
+                if (isInteger(n)) {
+                    Integer integer = new Integer(n);
+                    plots.add(integer);
+                }
+            }
+        }
+
+        return plots;
+    }
+
+
     public List<String> getData(int index) throws IOException {
         String url = String.format("https://www.plotfind.co.bw/server_request/get_plot.php?plot=%s", index);
 
@@ -112,6 +165,19 @@ public class Service {
             ex.printStackTrace();
 
         }
+    }
+
+    public static boolean isInteger(String number) {
+
+
+            try {
+                Integer.parseInt(number);
+            } catch(Exception e) {
+                return false;
+            }
+
+
+        return true;
     }
 
 
